@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>李白诗词 · 诗仙遗韵</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'STKaiti', 'KaiTi', '楷体', serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+
+        /* 动态背景 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            animation: gradientShift 15s ease infinite;
+            z-index: -2;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 飘落的花瓣 */
+        .petal {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50% 0 50% 0;
+            animation: fall linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* 主容器 */
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        /* 诗词卡片 */
+        .poem-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 60px 80px;
+            max-width: 900px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 标题 */
+        .poem-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 8px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideDown 1s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 作者 */
+        .poem-author {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            letter-spacing: 4px;
+        }
+
+        /* 诗词内容 */
+        .poem-content {
+            font-size: 1.8rem;
+            line-height: 2.8;
+            letter-spacing: 3px;
+            white-space: pre-line;
+            animation: fadeInUp 1.5s ease 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 按钮 */
+        .refresh-btn {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .poem-card {
+                padding: 40px 30px;
+            }
+            .poem-title {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+            .poem-content {
+                font-size: 1.3rem;
+                line-height: 2.2;
+            }
+            .refresh-btn {
+                bottom: 30px;
+                right: 30px;
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    
+    <div class="container">
+        <div class="poem-card">
+            <h1 class="poem-title" id="poemTitle">加载中...</h1>
+            <p class="poem-author" id="poemAuthor">李白</p>
+            <div class="poem-content" id="poemContent">正在加载诗词...</div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadRandomPoem()">换一首 ✨</button>
+
+    <script>
+        // 李白诗词数据
+        const poems = [
+  {
+    "title": "鼓吹曲辭 上之回",
+    "author": "李白",
+    "content": "三十六離宮，樓臺與天通。\n閣道步行月，美人愁煙空。\n恩疎寵不及，桃李傷春風。\n淫樂意何極，金輿向回中。\n萬乘出黃道，千旗揚彩虹。\n前軍細柳北，後騎甘泉東。\n豈問渭川老，寧邀襄野童。\n秋暮瑤池宴，歸來樂未窮。",
+    "id": "ee3195f6-eb17-4e87-b714-f7cf07ff03f2"
+  },
+  {
+    "title": "鼓吹曲辭 戰城南",
+    "author": "李白",
+    "content": "去年戰桑乾源，今年戰蔥河道。\n洗兵條支海上波，放馬天山雪中草。\n萬里長征戰，三軍盡衰老。\n匈奴以殺戮爲耕作，古來唯見白骨黃沙田。\n秦家築城備胡處，漢家還有烽火然。\n烽火然不息，征戰無已時。\n野戰格鬬死，敗馬號鳴向天悲。\n烏鳶啄人腸，銜飛上挂枯樹枝。\n士卒塗草莽，將軍空爾爲。\n乃知兵者是凶器，聖人不得已而用之。",
+    "id": "c0f1c8ed-bbf8-4ace-ac86-91e5e57d8ece"
+  },
+  {
+    "title": "鼓吹曲辭 將進酒",
+    "author": "李白",
+    "content": "君不見黃河之水天上來，奔流到海不復回。\n君不見高堂明鏡悲白髮，朝如青絲暮成雪。\n人生得意須盡歡，莫使金尊空對月。\n天生我材必有用，千金散盡還復來。\n烹羊宰牛且爲樂，會須一飲三百杯。\n岑夫子，丹丘生，將進酒，杯莫停。\n與君歌一曲，請君爲我側耳聽。\n鐘鼓饌玉不足貴，但願長醉不復醒。\n古來聖賢皆寂寞，惟有飲者留其名。\n陳王昔時宴平樂，斗酒十千恣歡謔。\n主人何爲言少錢，徑須酤取對君酌。\n五花馬，千金裘，呼兒將出換美酒，與爾同銷萬古愁。",
+    "id": "0f7504df-cda2-4fe2-bc63-867ec2e418e7"
+  },
+  {
+    "title": "鼓吹曲辭 君馬黃",
+    "author": "李白",
+    "content": "君馬黃，我馬白。\n馬色雖不同，人心本無隔。\n共作遊冶盤，雙行洛陽陌。\n長劒既照曜，高冠何赩赫。\n各有千金裘，俱爲五侯客。\n猛虎落陷穽，壯夫時屈厄。\n相知在急難，獨好亦何益。",
+    "id": "d4c03bc1-0596-4177-88ba-e42a97b0a7d9"
+  },
+  {
+    "title": "鼓吹曲辭 有所思",
+    "author": "李白",
+    "content": "我思仙人，乃在碧海之東隅。\n海寒多天風，白波連山倒蓬壺。\n長鯨噴湧不可涉，撫心茫茫淚如珠。\n西來青鳥東飛去，願寄一書謝麻姑。",
+    "id": "4f876a76-9628-4cc3-91da-124444b562f1"
+  },
+  {
+    "title": "鼓吹曲辭 雉子班",
+    "author": "李白",
+    "content": "辟邪伎作鼓吹驚，雉子班之奏曲成。\n喔咿振迅欲飛鳴，扇錦翼，雄風生。\n雙雌同飲啄，趫悍誰能爭。\n乍向草中耿介死，不求黃金籠下生。\n天地至廣大，何惜遂物情。\n善卷讓天子，務光亦逃名。\n所貴曠士懷，朗然合太清。",
+    "id": "0bfac3e5-6cc6-49c6-892e-e290aa5c5923"
+  },
+  {
+    "title": "橫吹曲辭 折楊柳",
+    "author": "李白",
+    "content": "垂楊拂綠水，搖豔東風年。\n花明玉關雪，葉暖金窗煙。\n美人結長恨，相對心悽然。\n攀條折春色，遠寄龍庭前。",
+    "id": "e70730a9-552c-481c-aadc-364713afd410"
+  },
+  {
+    "title": "橫吹曲辭 關山月",
+    "author": "李白",
+    "content": "明月出天山，蒼茫雲海間。\n長風幾萬里，吹度玉門關。\n漢下白登道，胡窺青海灣。\n由來征戰地，不見有人還。\n戍客望邊色，思歸多苦顏。\n高樓當此夜，歎息未應閑。",
+    "id": "0167687e-8325-48bf-8da4-3749c9ce0a74"
+  },
+  {
+    "title": "橫吹曲辭 洛陽陌",
+    "author": "李白",
+    "content": "白玉誰家郎，回車渡天津。\n看花東上陌，驚動洛陽人。",
+    "id": "7f968ba8-1a23-4916-8b55-97f03e8cfe1e"
+  },
+  {
+    "title": "橫吹曲辭 紫騮馬",
+    "author": "李白",
+    "content": "紫騮行且嘶，雙飜碧玉蹄。\n臨流不肎渡，似惜錦障泥。\n白雪關山遠，黃雲海樹迷。\n揮鞭萬里去，安得念春閨。",
+    "id": "49016fc5-51cc-4d01-896d-a6e14768ce6e"
+  },
+  {
+    "title": "橫吹曲辭 幽州胡馬客歌",
+    "author": "李白",
+    "content": "幽州胡馬客，綠眼虎皮冠。\n笑拂兩隻箭，萬人不可干。\n彎弓若轉月，白雁落雲端。\n雙雙掉鞭行，遊獵向樓蘭。\n出門不顧後，報國死何難。\n天驕五單于，狼戾好凶殘。\n牛馬散北海，割鮮若虎餐。\n雖居燕支山，不道朔雪寒。\n婦女馬上笑，顏如赬玉盤。\n飜入射鳥獸，花月醉雕鞍。\n旄頭四光芒，爭戰若蜂攢。\n白刃灑赤血，流沙爲之丹。\n名將古誰是，疲兵良可歎。\n何時天狼滅？父子得閑安。",
+    "id": "e74b2d34-c0a4-4049-a02d-b2d9aa00fd80"
+  },
+  {
+    "title": "橫吹曲辭 白鼻騧",
+    "author": "李白",
+    "content": "銀鞍白鼻騧，綠地障泥錦。\n細雨春風花落時，揮鞭且就胡姬飲。",
+    "id": "c5f83ccf-1f85-4b43-87e5-b24df8131f39"
+  },
+  {
+    "title": "相和歌辭 公無渡河",
+    "author": "李白",
+    "content": "黃河西來決崐崘，咆吼萬里觸龍門。\n波滔天，堯咨嗟。\n大禹理百川，兒啼不窺家。\n殺湍湮洪水，九州始蠶麻。\n其害乃去，茫然風沙。\n被髮之叟狂而癡，清晨徑流欲奚爲。\n旁人不惜妻止之，公無渡河苦渡之。\n虎可搏，河難憑。\n公果溺死流海湄，有長鯨白齒若雪山。\n公乎公乎，挂骨於其間，箜篌所悲竟不還。",
+    "id": "bf5f4147-1e1c-4bb6-84ab-0e6a6a402325"
+  },
+  {
+    "title": "相和歌辭 登高丘而望遠",
+    "author": "李白",
+    "content": "登高丘而望遠海，六鼇骨已霜，三山流安在。\n扶桑半摧折，白日沈光彩。\n銀臺金闕如夢中，秦皇漢武空相待。\n精衛費木石，黿鼉無所憑。\n君不見驪山茂陵盡灰滅，牧羊之子來攀登。\n盜賊劫寶玉，精靈竟何能。",
+    "id": "3d7fc8a1-0d5c-4a78-924c-01b1889059f8"
+  },
+  {
+    "title": "相和歌辭 對酒二首 一",
+    "author": "李白",
+    "content": "松子棲金華，安期入蓬海。\n此人古之仙，羽化竟何在？\n浮生速流電，倏忽變光彩。\n天地無凋換，容顏有遷改。\n對酒不肯飲，含情欲誰待。",
+    "id": "8e959f72-69b2-4d3e-82b7-8a5a017c9a4d"
+  },
+  {
+    "title": "相和歌辭 對酒二首 二",
+    "author": "李白",
+    "content": "勸君莫拒杯，春風笑人來。\n桃李如舊識，傾花向我開。\n流鶯啼碧樹，明月窺金罍。\n昨來朱顏子，今日白髮催。\n棘生石虎殿，鹿走姑蘇臺。\n自古帝王宅，城闕閉黃埃。\n君若不飲酒，昔人安在哉。",
+    "id": "0e943ad5-c823-4036-935d-e5d20f3c6ab1"
+  },
+  {
+    "title": "相和歌辭 陌上桑",
+    "author": "李白",
+    "content": "美女渭橋東，春還事蠶作。\n五馬如飛龍，青絲結金絡。\n不知誰家子，調笑來相謔。\n妾本秦羅敷，玉顏豔名都。\n綠條映素手，采桑向城隅。\n使君且不顧，況復論秋胡。\n寒螿愛碧草，鳴鳳棲青梧。\n託心自有處，但怪傍人愚。\n徒令白日暮，高駕空踟躕。",
+    "id": "e7abc715-139b-4987-b57d-c7dacdd8fe6b"
+  },
+  {
+    "title": "相和歌辭 日出行",
+    "author": "李白",
+    "content": "日出東方隈，似從地底來。\n歷天又入海，六龍所舍安在哉？\n其始與終古不息，人非元氣安能與之久裴回。\n草不謝榮於春風，木不怨落於秋天。\n誰揮鞭策驅四運，萬物興歇皆自然。\n羲和羲和，汝奚汩沒於荒淫之波。\n魯陽何德？駐景揮戈。\n逆道違天，矯誣實多。\n吾將囊括大塊，浩然與溟涬同科。",
+    "id": "08cf0ce8-bd26-4bab-a4d2-5bc43acf8376"
+  },
+  {
+    "title": "相和歌辭 王昭君二首 一",
+    "author": "李白",
+    "content": "漢家秦地月，流影照明妃。\n一上玉關道，天涯去不歸。\n漢月還從東海出，明妃西嫁無來日。\n燕支長寒雪作花，蛾眉顦顇沒胡沙。\n生乏黃金枉圖畫，死留青冢使人嗟。",
+    "id": "7351694b-3849-44b6-a7b6-8f46e00f8041"
+  },
+  {
+    "title": "相和歌辭 王昭君二首 二",
+    "author": "李白",
+    "content": "昭君拂玉鞍，上馬啼紅頰。\n今日漢宮人，明朝胡地妾。",
+    "id": "d859edea-5188-4d7f-b4c2-f281d106bd59"
+  }
+];
+
+        // 创建飘落花瓣
+        function createPetals() {
+            for (let i = 0; i < 20; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.style.left = Math.random() * 100 + '%';
+                petal.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                petal.style.animationDelay = Math.random() * 5 + 's';
+                petal.style.opacity = Math.random() * 0.5 + 0.2;
+                document.body.appendChild(petal);
+            }
+        }
+
+        // 加载随机诗词
+        function loadRandomPoem() {
+            const randomIndex = Math.floor(Math.random() * poems.length);
+            const poem = poems[randomIndex];
+            
+            // 添加淡出效果
+            const card = document.querySelector('.poem-card');
+            card.style.animation = 'none';
+            setTimeout(() => {
+                card.style.animation = 'fadeIn 1.5s ease';
+            }, 10);
+            
+            document.getElementById('poemTitle').textContent = poem.title;
+            document.getElementById('poemAuthor').textContent = poem.author;
+            document.getElementById('poemContent').textContent = poem.content;
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            createPetals();
+            loadRandomPoem();
+        };
+
+        // 键盘快捷键：空格键换诗
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                loadRandomPoem();
+            }
+        });
+    </script>
+</body>
+</html>
